@@ -16,14 +16,12 @@ from PIL import Image
 logo = Image.open("imagen.png")
 st.image(logo, width=120)
 st.markdown(
-    "<h2 style='color:#004C91;margin-top:-10px;'>Extractor de PARTIDAS DUA</h2>",
+    "<h2 style='color:#FFFFFF;margin-top:-10px;'>Extractor de PARTIDAS DUA | (PDF → Excel)</h2>",
     unsafe_allow_html=True
 )
-st.caption("Departamento de Aduanas - Empresa XYZ")
+st.caption("Departamento de Aduanas - Bernardino Abad SL")
 st.divider()
 
-
-st.title("Extractor de PARTIDAS DUA (PDF → Excel)")
 st.write("Sube uno o varios archivos PDF y convierte su contenido a una tabla consolidada en Excel.")
 
 # Subida de archivos
@@ -95,4 +93,5 @@ if uploaded_files:
 
     else:
         st.error("No se pudo generar ningún resultado. Revisa los archivos PDF subidos.")
+
 
