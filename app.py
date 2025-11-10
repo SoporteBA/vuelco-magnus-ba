@@ -30,6 +30,31 @@ st.divider()
 
 st.write("Sube uno o varios archivos PDF y convierte su contenido a una tabla consolidada en Excel.")
 
+# CSS
+
+st.markdown("""
+<style>
+/* Fondo general */
+.stApp {
+    background-color: #F8FAFD;
+}
+
+/* Botones principales */
+.stButton>button {
+    background-color: #004C91;
+    color: white;
+    border-radius: 8px;
+    padding: 0.6em 1.2em;
+    font-weight: 600;
+}
+
+/* Texto y títulos */
+h1, h2, h3, h4 {
+    color: #004C91;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # Subida de archivos
 uploaded_files = st.file_uploader(
     "Selecciona uno o varios archivos PDF:",
@@ -99,6 +124,7 @@ if uploaded_files:
 
     else:
         st.error("No se pudo generar ningún resultado. Revisa los archivos PDF subidos.")
+
 
 
 
