@@ -9,7 +9,21 @@ from main import parse_pdf  # Asegúrate de que tu script original se llame main
 
 # Configuración general de la página
 st.set_page_config(page_title="Extractor de PARTIDAS DUA", layout="wide")
-st.title("📄 Extractor de PARTIDAS DUA (PDF → Excel)")
+
+from PIL import Image
+
+# Encabezado
+logo = Image.open("imagen.png")
+st.image(logo, width=120)
+st.markdown(
+    "<h2 style='color:#004C91;margin-top:-10px;'>Extractor de PARTIDAS DUA</h2>",
+    unsafe_allow_html=True
+)
+st.caption("Departamento de Aduanas - Empresa XYZ")
+st.divider()
+
+
+st.title("Extractor de PARTIDAS DUA (PDF → Excel)")
 st.write("Sube uno o varios archivos PDF y convierte su contenido a una tabla consolidada en Excel.")
 
 # Subida de archivos
@@ -81,3 +95,4 @@ if uploaded_files:
 
     else:
         st.error("No se pudo generar ningún resultado. Revisa los archivos PDF subidos.")
+
