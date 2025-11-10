@@ -4,7 +4,6 @@ import tempfile
 from pathlib import Path
 from io import BytesIO
 from PIL import Image
-
 import json
 import gspread
 from google.oauth2.service_account import Credentials
@@ -23,7 +22,7 @@ spreadsheet = client.open("Vuelco MAGNUS_DESGLOSE")
 sheet = spreadsheet.worksheet("DESGLOSE")
 
 # --- IMPORTAR TU FUNCIÓN DE PROCESO ---
-from main import parse_pdf  # asegúrate de que tu script principal se llame main.py
+from main import parse_pdf  # Asegúrate de que tu script principal se llame main.py
 
 # --- CONFIGURACIÓN DE STREAMLIT ---
 st.set_page_config(
@@ -126,20 +125,29 @@ if uploaded_files:
 
                 # Preparar datos (sin encabezado)
                 values = final_df.values.tolist()
-                cell_list = sheet.range(f"B9:G{8+len(values)}")
+                total_rows = len(values)
+                total_cells = total_rows * 6  # columnas B-G = 6
 
-                # Asignar valores a celdas
-                for cell, value in zip(cell_list, [v for row in values for v in row]):
+                # Crear barra de progreso para el volcado
+                progress_gs = st.progress(0, text="Volcando a Google Sheets...")
+
+                cell_list = sheet.range(f"B9:G{8+total_rows}")
+                # Asignar valores a celdas con seguimiento de progreso
+                for idx, (cell, value) in enumerate(zip(cell_list, [v for row in values for v in row])):
                     cell.value = value
+                    progress_gs.progress((idx + 1) / total_cells, text="Volcando a Google Sheets...")
 
                 sheet.update_cells(cell_list)
-                st.success("✅ Datos volcados correctamente en Google Sheets (B9:G107)")
+                progress_gs.empty()
+                st.success("✅ Datos volcados correctamente en Google Sheets")
 
             except Exception as e:
                 st.error(f"❌ Error al volcar datos: {e}")
 
     else:
         st.error("No se pudo generar ningún resultado. Revisa los archivos PDF subidos.")
+
+
 
 
 
