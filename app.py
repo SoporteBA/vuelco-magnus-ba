@@ -19,7 +19,10 @@ st.markdown(
     "<h2 style='color:#132136;margin-top:-10px;'>Extractor de PARTIDAS DUA | (PDF → Excel)</h2>",
     unsafe_allow_html=True
 )
-st.caption("<style ='color:#132136'>Departamento de Aduanas - Bernardino Abad SL</style>")
+st.caption(
+    "<h4 style='color:#132136'>Departamento de Aduanas - Bernardino Abad SL</h4>",
+    unsafe_allow_html=True
+)
 st.divider()
 
 st.write("Sube uno o varios archivos PDF y convierte su contenido a una tabla consolidada en Excel.")
@@ -93,6 +96,7 @@ if uploaded_files:
 
     else:
         st.error("No se pudo generar ningún resultado. Revisa los archivos PDF subidos.")
+
 
 
 
