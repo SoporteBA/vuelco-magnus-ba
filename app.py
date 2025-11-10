@@ -9,64 +9,51 @@ import json
 import gspread
 from google.oauth2.service_account import Credentials
 
-# Leer el JSON desde Secrets
+# --- CONFIGURACIÓN DE GOOGLE SHEETS ---
 creds_json = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
-scope = ["https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive"]
+scope = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
 creds = Credentials.from_service_account_info(creds_json, scopes=scope)
 client = gspread.authorize(creds)
 
-# Abrir la hoja de Google
+# Abrir hoja de Google
 spreadsheet = client.open("Vuelco MAGNUS_DESGLOSE")
 sheet = spreadsheet.worksheet("DESGLOSE")
 
-# Importamos tu lógica de procesamiento
-from main import parse_pdf  # Asegúrate de que tu script original se llame main.py
+# --- IMPORTAR TU FUNCIÓN DE PROCESO ---
+from main import parse_pdf  # asegúrate de que tu script principal se llame main.py
 
-# Configuración general de la página
+# --- CONFIGURACIÓN DE STREAMLIT ---
 st.set_page_config(
     page_title="Extractor de PARTIDAS DUA",
     page_icon="icono.ico",
     layout="wide"
 )
 
-# Encabezado
+# Encabezado con logo
 logo = Image.open("imagen.png")
 st.image(logo, width=500)
 st.markdown(
-    "<h3 style='color:#132136;margin-top:-10px;'>Extractor de PARTIDAS DUA  |  (PDF → Google Sheets)</h3>",
+    "<h3 style='color:#132136;margin-top:-10px;'>Extractor de PARTIDAS DUA  |  (PDF → Excel / Google Sheets)</h3>",
     unsafe_allow_html=True
 )
 st.caption("Departamento de Aduanas - Bernardino Abad SL")
 st.divider()
 
-st.write("Sube uno o varios archivos PDF y convierte su contenido a una tabla consolidada en Google Sheets.")
+st.write("Sube uno o varios archivos PDF y convierte su contenido a una tabla consolidada.")
 
-# CSS
+# CSS personalizado
 st.markdown("""
 <style>
-/* Fondo general */
-.stApp {
-    background-color: #F8FAFD;
-}
-
-/* Botones principales */
-.stButton>button {
-    background-color: #004C91;
-    color: white;
-    border-radius: 8px;
-    padding: 0.6em 1.2em;
-    font-weight: 600;
-}
-
-/* Texto y títulos */
-h1, h2, h3, h4 {
-    color: #004C91;
-}
+.stApp { background-color: #F8FAFD; }
+.stButton>button { background-color: #004C91; color: white; border-radius: 8px; padding: 0.6em 1.2em; font-weight: 600; }
+h1, h2, h3, h4 { color: #004C91; }
 </style>
 """, unsafe_allow_html=True)
 
-# Subida de archivos
+# --- SUBIDA DE ARCHIVOS ---
 uploaded_files = st.file_uploader(
     "Selecciona uno o varios archivos PDF:",
     type=["pdf"],
@@ -84,15 +71,14 @@ if uploaded_files:
         st.info(f"Procesando **{file.name}** ...")
 
         try:
-            # Guardamos temporalmente el PDF subido
+            # Guardar temporalmente el PDF
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                 tmp.write(file.read())
                 tmp_path = Path(tmp.name)
 
-            # Parseamos el PDF usando tu función
+            # Parsear PDF
             df = parse_pdf(tmp_path)
 
-            # Solo añadimos si tiene filas válidas
             if not df.empty:
                 all_rows.append(df)
             else:
@@ -105,10 +91,9 @@ if uploaded_files:
         progress.progress((i + 1) / len(uploaded_files),
                           text=f"Procesando {file.name} ({i + 1}/{len(uploaded_files)})")
 
-    # Quitar la barra
     progress.empty()
 
-    # Mostrar errores si existen
+    # Mostrar errores si los hay
     if errores:
         st.warning("Algunos archivos no se procesaron correctamente:")
         for err in errores:
@@ -120,24 +105,43 @@ if uploaded_files:
         st.success(f"✅ Se procesaron {len(all_rows)} de {len(uploaded_files)} archivos correctamente.")
         st.dataframe(final_df, use_container_width=True)
 
-        # --- VOLCAR DATOS A GOOGLE SHEETS ---
-        try:
-            # Convertir DataFrame a lista de listas (sin encabezado)
-            data_values = final_df.values.tolist()
+        # --- Descarga en Excel opcional ---
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            final_df.to_excel(writer, index=False, sheet_name="Partidas")
+        output.seek(0)
 
-            # Respetar rango B9:G107 (99 filas máximo)
-            max_rows = 107 - 9 + 1  # 99 filas
-            data_to_insert = data_values[:max_rows]
+        st.download_button(
+            label="⬇️ Descargar Excel consolidado",
+            data=output,
+            file_name="partidas_consolidadas.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
-            # Actualizar rango específico en la hoja
-            sheet.update("B9:G107", data_to_insert)
+        # --- Botón para volcar a Google Sheets ---
+        if st.button("💾 Volcar a Google Sheets"):
+            try:
+                # Limpiar rango previo
+                sheet.batch_clear(["B9:G107"])
 
-            st.success("📤 Datos volcados correctamente en Google Sheets (B9:G107).")
-        except Exception as e:
-            st.error(f"❌ Error al volcar datos a Google Sheets: {e}")
+                # Preparar datos (sin encabezado)
+                values = final_df.values.tolist()
+                cell_list = sheet.range(f"B9:G{8+len(values)}")
+
+                # Asignar valores a celdas
+                for cell, value in zip(cell_list, [v for row in values for v in row]):
+                    cell.value = value
+
+                sheet.update_cells(cell_list)
+                st.success("✅ Datos volcados correctamente en Google Sheets (B9:G107)")
+
+            except Exception as e:
+                st.error(f"❌ Error al volcar datos: {e}")
 
     else:
         st.error("No se pudo generar ningún resultado. Revisa los archivos PDF subidos.")
+
+
 
 
 
