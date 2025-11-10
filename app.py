@@ -4,6 +4,22 @@ import tempfile
 from pathlib import Path
 from io import BytesIO
 
+import json
+import gspread
+from google.oauth2.service_account import Credentials
+import streamlit as st
+
+# Leer el JSON desde Secrets
+creds_json = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
+scope = ["https://www.googleapis.com/auth/spreadsheets"]
+creds = Credentials.from_service_account_info(creds_json, scopes=scope)
+client = gspread.authorize(creds)
+
+# Abrir la hoja de Google
+spreadsheet = client.open("Vuelco MAGNUS_DESGLOSE")
+sheet = spreadsheet.worksheet("DESGLOSE")
+
+
 # Importamos tu lógica de procesamiento
 from main import parse_pdf  # Asegúrate de que tu script original se llame main.py
 
@@ -123,6 +139,7 @@ if uploaded_files:
 
     else:
         st.error("No se pudo generar ningún resultado. Revisa los archivos PDF subidos.")
+
 
 
 
