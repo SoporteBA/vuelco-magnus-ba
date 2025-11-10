@@ -11,7 +11,8 @@ from google.oauth2.service_account import Credentials
 
 # Leer el JSON desde Secrets
 creds_json = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
-scope = ["https://www.googleapis.com/auth/spreadsheets"]
+scope = ["https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"]
 creds = Credentials.from_service_account_info(creds_json, scopes=scope)
 client = gspread.authorize(creds)
 
@@ -137,6 +138,7 @@ if uploaded_files:
 
     else:
         st.error("No se pudo generar ningún resultado. Revisa los archivos PDF subidos.")
+
 
 
 
