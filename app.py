@@ -21,7 +21,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 st.caption(
-    "<style='color:#132136'>Departamento de Aduanas - Bernardino Abad SL</style>",
+    "<p style='color:#132136'>Departamento de Aduanas - Bernardino Abad SL</p>",
     unsafe_allow_html=True
 )
 st.divider()
@@ -97,6 +97,7 @@ if uploaded_files:
 
     else:
         st.error("No se pudo generar ningún resultado. Revisa los archivos PDF subidos.")
+
 
 
 
