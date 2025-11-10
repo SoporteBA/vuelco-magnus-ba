@@ -2,4 +2,7 @@ streamlit
 pandas
 openpyxl
 pdfplumber
+gspread
+google-auth
+
 PyPDF2
