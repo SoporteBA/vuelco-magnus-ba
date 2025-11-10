@@ -15,7 +15,6 @@ from PIL import Image
 # Encabezado
 logo = Image.open("imagen.png")
 st.image(logo, width=600)
-st.divider()
 st.markdown(
     "<h2 style='color:#132136;margin-top:-10px;'>Extractor de PARTIDAS DUA  |  (PDF → Excel)</h2>",
     unsafe_allow_html=True
@@ -97,6 +96,7 @@ if uploaded_files:
 
     else:
         st.error("No se pudo generar ningún resultado. Revisa los archivos PDF subidos.")
+
 
 
 
