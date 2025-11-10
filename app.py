@@ -8,7 +8,10 @@ from io import BytesIO
 from main import parse_pdf  # Asegúrate de que tu script original se llame main.py
 
 # Configuración general de la página
-st.set_page_config(page_title="Extractor de PARTIDAS DUA", layout="wide")
+st.set_page_config(
+    page_title="Extractor de PARTIDAS DUA",
+    page_ico="icono.ico",
+    layout="wide")
 
 from PIL import Image
 
@@ -96,6 +99,7 @@ if uploaded_files:
 
     else:
         st.error("No se pudo generar ningún resultado. Revisa los archivos PDF subidos.")
+
 
 
 
