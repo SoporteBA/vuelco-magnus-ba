@@ -19,12 +19,11 @@ from PIL import Image
 logo = Image.open("imagen.png")
 st.image(logo, width=500)
 st.markdown(
-    "<h2 style='color:#132136;margin-top:-10px;'>Extractor de PARTIDAS DUA  |  (PDF → Excel)</h2>",
+    "<h3 style='color:#132136;margin-top:-10px;'>Extractor de PARTIDAS DUA  |  (PDF → Excel)</h3>",
     unsafe_allow_html=True
 )
 st.caption(
-    "<p style='color:#132136'>Departamento de Aduanas - Bernardino Abad SL</p>",
-    unsafe_allow_html=True
+    "Departamento de Aduanas - Bernardino Abad SL"
 )
 st.divider()
 
@@ -124,6 +123,7 @@ if uploaded_files:
 
     else:
         st.error("No se pudo generar ningún resultado. Revisa los archivos PDF subidos.")
+
 
 
 
