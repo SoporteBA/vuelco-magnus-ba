@@ -123,8 +123,11 @@ if uploaded_files:
                 # Limpiar rango previo
                 sheet.batch_clear(["B9:G107"])
 
-                # Preparar datos (sin encabezado)
-                values = final_df.values.tolist()
+                # Sanitizar DataFrame reemplazando valores NaN/None por cadenas vacías
+                df_clean = final_df.fillna("")
+
+                # Preparar datos satinizados (sin encabezado)
+                values = df_clean.values.tolist()
                 total_rows = len(values)
                 total_cells = total_rows * 6  # columnas B-G = 6
 
@@ -132,8 +135,10 @@ if uploaded_files:
                 progress_gs = st.progress(0, text="Volcando a Google Sheets...")
 
                 cell_list = sheet.range(f"B9:G{8+total_rows}")
+        
                 # Asignar valores a celdas con seguimiento de progreso
-                for idx, (cell, value) in enumerate(zip(cell_list, [v for row in values for v in row])):
+                flat_values = [v for row in values for v in row]
+                for idx, (cell, value) in enumerate(zip(cell_list, flat_values)):
                     cell.value = value
                     progress_gs.progress((idx + 1) / total_cells, text="Volcando a Google Sheets...")
 
