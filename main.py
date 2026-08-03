@@ -1,4 +1,3 @@
-
 import re
 import argparse
 from pathlib import Path
@@ -20,8 +19,19 @@ def _normalize_number(s: str):
     s = s.strip()
     if not s:
         return None
-    s = s.replace('.', '').replace('\u00A0', '').replace(' ', '')
-    s = s.replace(',', '.')
+
+    # Eliminar espacios normales y espacios de no separación
+    s = s.replace('\u00A0', '').replace(' ', '')
+
+    # Caso 1: Formato europeo con decimales (ej. "1.209,82")
+    if ',' in s:
+        s = s.replace('.', '')    # Quitar puntos de miles
+        s = s.replace(',', '.')    # Cambiar coma por punto decimal
+    else:
+        # Caso 2: Formato entero con punto de miles (ej. "1.750")
+        if s.count('.') == 1 and len(s.split('.')[1]) == 3:
+            s = s.replace('.', '')
+
     try:
         return float(s)
     except ValueError:
@@ -59,19 +69,33 @@ def parse_pdf(pdf_path: Path) -> pd.DataFrame:
     text = _extract_text(pdf_path)
     partidas = _slice_partidas(text)
     rows = []
+
+    # Expresiones regulares adaptables
+    pos_pat = re.compile(r"Pos\.?\s*Estad[íi]stica:\s*([\d\s]{6,12})", re.IGNORECASE)
+    desc_pat = re.compile(
+        r"Desc\.?\s*Mercanc[ií]a:\s*(.*?)(?=\n\s*(?:Bultos:|Pa[íi]s|C[oó]digo\s+CUS:|Embalajes:|\Z))",
+        re.IGNORECASE | re.DOTALL
+    )
+    bultos_pat = re.compile(r"Bultos:\s*([\d\.]+)", re.IGNORECASE)
+    pbr_pat = re.compile(r"Peso\s+Bruto:\s*([\d\.\,]+)", re.IGNORECASE)
+    pnt_pat = re.compile(r"Peso\s+Neto:\s*([\d\.\,]+)", re.IGNORECASE)
+    factura_pat = re.compile(r"Factura:\s*([\d\.\,]+)\s*€", re.IGNORECASE)
+
     for blk in partidas:
-        pos = _get(re.compile(r"Pos\.?\s*Estad[íi]stica:\s*([\d]+)", re.IGNORECASE), blk)
-        desc = _get(re.compile(r"Desc\.?\s*Mercanc[ií]a:\s*(.*?)(?:\n|C[oó]digo\s+CUS:)", re.IGNORECASE | re.DOTALL), blk)
+        pos = _get(pos_pat, blk)
+        if pos:
+            pos = re.sub(r"\s+", "", pos)
+
+        desc = _get(desc_pat, blk)
         if desc:
-            import re as _re
-            desc = _re.sub(r"\s+", " ", desc).strip(" .")
+            desc = re.sub(r"\s+", " ", desc).strip(" .")
 
-        bultos = _get(re.compile(r"Bultos:\s*([\d\.]+)", re.IGNORECASE), blk, as_float=True)
-        pbr = _get(re.compile(r"Peso\s+Bruto:\s*([\d\.\,]+)", re.IGNORECASE), blk, as_float=True)
-        pnt = _get(re.compile(r"Peso\s+Neto:\s*([\d\.\,]+)", re.IGNORECASE), blk, as_float=True)
-        factura = _get(re.compile(r"Factura:\s*([\d\.\,]+)\s*€", re.IGNORECASE), blk, as_float=True)
+        bultos = _get(bultos_pat, blk, as_float=True)
+        pbr = _get(pbr_pat, blk, as_float=True)
+        pnt = _get(pnt_pat, blk, as_float=True)
+        factura = _get(factura_pat, blk, as_float=True)
 
-        # Filtramos filas vacías
+        # Filtramos filas completamente vacías
         if any([pos, desc, bultos, pbr, pnt, factura]):
             rows.append({
                 "Posición Estadística": pos,
