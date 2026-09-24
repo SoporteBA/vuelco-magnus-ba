@@ -71,7 +71,8 @@ def parse_pdf(pdf_path: Path) -> pd.DataFrame:
     rows = []
 
     # Expresiones regulares adaptables
-    pos_pat = re.compile(r"Pos\.?\s*Estad[íi]stica:\s*([\d\s]{6,12})", re.IGNORECASE)
+    # pos_pat ahora acepta dígitos, espacios y puntos
+    pos_pat = re.compile(r"Pos\.?\s*Estad[íi]stica:\s*([\d\s\.]+)", re.IGNORECASE)
     desc_pat = re.compile(
         r"Desc\.?\s*Mercanc[ií]a:\s*(.*?)(?=\n\s*(?:Bultos:|Pa[íi]s|C[oó]digo\s+CUS:|Embalajes:|\Z))",
         re.IGNORECASE | re.DOTALL
@@ -84,7 +85,8 @@ def parse_pdf(pdf_path: Path) -> pd.DataFrame:
     for blk in partidas:
         pos = _get(pos_pat, blk)
         if pos:
-            pos = re.sub(r"\s+", "", pos)
+            # Eliminamos espacios y puntos para mantener la coherencia (ej: 8204.20.00.00 -> 8204200000)
+            pos = re.sub(r"[\s\.]+", "", pos)
 
         desc = _get(desc_pat, blk)
         if desc:
